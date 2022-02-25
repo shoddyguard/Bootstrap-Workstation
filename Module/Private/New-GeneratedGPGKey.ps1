@@ -80,6 +80,12 @@ Expire-Date: 0`n
             {
                 Write-Error "Failed to generate the key, armor export returned a non-zero exitcode: $LASTEXITCODE"
             }
+            $Return = [PSCustomObject]@{
+                PublicKey = $ArmorExport
+                KeyId = $KeyId
+                Name = $UserName
+                Email = $EmailAddress
+            }
 
         }
         catch
@@ -90,9 +96,9 @@ Expire-Date: 0`n
     
     end
     {
-        if ($ArmorExport)
+        if ($Return)
         {
-            Return $ArmorExport
+            Return $Return
         }
         else
         {
