@@ -1,17 +1,9 @@
 <#
 .SYNOPSIS
-    Generates a GPG key and uploads it to GitHub
+    Generates a GPG key and uploads it to GitHub.
 .DESCRIPTION
-    Long description
-.EXAMPLE
-    PS C:\> <example usage>
-    Explanation of what the example does
-.INPUTS
-    Inputs (if any)
-.OUTPUTS
-    Output (if any)
-.NOTES
-    General notes
+    This cmdlet will generate a GPG key and upload it to GitHub.
+    It will also set the global signing key to the newly generated key if desired.
 #>
 function New-GPGKey
 {
@@ -37,6 +29,11 @@ function New-GPGKey
         [Parameter(Mandatory = $false)]
         [securestring]
         $Passphrase,
+
+        # An optional comment for the key
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Comment,
 
         # The length of the key
         [Parameter(Mandatory = $false)]
@@ -79,17 +76,23 @@ function New-GPGKey
             {
                 $GenerateArgs.Add('Passphrase',$Passphrase)
             }
+            if ($Comment)
+            {
+                $GenerateArgs.Add('Comment',$Comment)
+            }
             # Generate the key
             $Key = New-GeneratedGPGKey @GenerateArgs
             # Add it to GitHub
             Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
             if ($EnableGlobalSigning)
             {
+                Write-Host "Setting global signing key to $($Key.KeyID)"
                 & git config --global user.signingkey $Key.KeyId
                 if ($LASTEXITCODE -ne 0)
                 {
                     Write-Error "Failed to set global signing key, git returned a non-zero exitcode: $LASTEXITCODE"
                 }
+                Write-Host "Successfully set global signing key to $($Key.KeyId)" -ForegroundColor Green
             }
         }
         catch

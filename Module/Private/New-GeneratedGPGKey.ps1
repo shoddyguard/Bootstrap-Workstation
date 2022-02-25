@@ -18,6 +18,11 @@ function New-GeneratedGPGKey
         [securestring]
         $Passphrase,
 
+        # An optional comment for the key
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Comment,
+
         # The length of the key
         [Parameter(Mandatory = $false)]
         [int]
@@ -35,6 +40,10 @@ Name-Real: $UserName
 Name-Email: $EmailAddress
 Expire-Date: 0`n
 "@
+        if ($Comment)
+        {
+            $FileContent += "Name-Comment: $Comment`n"
+        }
         if ($Passphrase)
         {
             $FileContent += "Passphrase: $Passphrase`n"
@@ -50,20 +59,22 @@ Expire-Date: 0`n
     {
         try
         {
+            Write-Host "Generating GPG key for $EmailAddress..."
             # Use the Temp PSDrive.
             $TempFile = New-Item -Path (Join-Path 'Temp:' -ChildPath 'GPGKey.txt') -Force -Value $FileContent | Convert-Path
-            & gpg --batch --gen-key $TempFile
+            $Output = & gpg --batch --gen-key $TempFile 2>&1
+            Write-Debug "GPG Output:`n$Output"
             if ($LASTEXITCODE -ne 0)
             {
                 Write-Error "Failed to generate the key, non-zero exitcode: $LASTEXITCODE"
             }
             $Today = Get-Date -Format yyyy-MM-dd
-            $Keys = & gpg --list-secret-keys --keyid-format=long | Where-Object { $_ -match "sec(?:.*)\/(?<keyid>[A-Z0-9]*) $Today" }
+            $Keys = & gpg --list-secret-keys --keyid-format=long 2>&1 | Where-Object { $_ -match "sec(?:.*)\/(?<keyid>[A-Z0-9]*) $Today" }
             if ($LASTEXITCODE -ne 0)
             {
                 Write-Error "Failed to list the keys, listing keys returned non-zero exitcode: $LASTEXITCODE"
             }
-            Write-Debug ($Keys | Out-String)
+            Write-Debug "Found key(s):`n$($Keys | Out-String)"
             $KeyId = $Matches.keyid
             if ($KeyId.count -gt 1)
             {
@@ -81,7 +92,7 @@ Expire-Date: 0`n
                 Write-Error "Failed to generate the key, armor export returned a non-zero exitcode: $LASTEXITCODE"
             }
             $Return = [PSCustomObject]@{
-                PublicKey = $ArmorExport
+                PublicKey = ($ArmorExport | Out-String)
                 KeyId = $KeyId
                 Name = $UserName
                 Email = $EmailAddress
@@ -91,6 +102,10 @@ Expire-Date: 0`n
         catch
         {
             throw $_
+        }
+        finally
+        {
+            Remove-Item -Path $TempFile -Force -ErrorAction 'SilentlyContinue'
         }    
     }
     
