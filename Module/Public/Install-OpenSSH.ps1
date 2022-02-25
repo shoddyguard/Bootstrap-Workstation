@@ -18,6 +18,7 @@ function Install-OpenSSH
     }
     else
     {
+        Write-Host "Installing OpenSSH for Windows..."
         try
         {
             $Url = 'https://github.com/PowerShell/Win32-OpenSSH/releases/latest/'
@@ -45,5 +46,6 @@ function Install-OpenSSH
         {
             throw "Failed to install OpenSSH.`n$($_.Exception.Message)"
         }
+        Write-Host "OpenSSH for Windows has been installed." -ForegroundColor Green
     }
 }
