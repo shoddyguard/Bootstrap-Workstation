@@ -59,12 +59,12 @@ Expire-Date: 0`n
             }
             $Today = Get-Date -Format yyyy-MM-dd
             $Keys = & gpg --list-secret-keys --keyid-format=long | Where-Object { $_ -match "sec(?:.*)\/(?<keyid>[A-Z0-9]*) $Today" }
-            Write-Debug ($Keys | Out-String)
-            $KeyId = $Matches.keyid
             if ($LASTEXITCODE -ne 0)
             {
                 Write-Error "Failed to list the keys, listing keys returned non-zero exitcode: $LASTEXITCODE"
             }
+            Write-Debug ($Keys | Out-String)
+            $KeyId = $Matches.keyid
             if ($KeyId.count -gt 1)
             {
                 Write-Verbose "Found multiple keys, using the newest one"
