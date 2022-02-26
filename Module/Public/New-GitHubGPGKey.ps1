@@ -5,7 +5,7 @@
     This cmdlet will generate a GPG key and upload it to GitHub.
     It will also set the global signing key to the newly generated key if desired.
 #>
-function New-GPGKey
+function New-GitHubGPGKey
 {
     [CmdletBinding()]
     param
@@ -18,6 +18,7 @@ function New-GPGKey
         # The email address of the user
         [Parameter(Mandatory = $true)]
         [string]
+        [Alias("Email")]
         $EmailAddress,
 
         # The GitHub token for uploading the key
@@ -86,8 +87,11 @@ function New-GPGKey
             Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
             if ($EnableGlobalSigning)
             {
+                # Maybe move this to a separate cmdlet?
                 Write-Host "Setting global signing key to $($Key.KeyID)"
                 & git config --global user.signingkey $Key.KeyId
+                & git config --global user.name $UserName
+                & git config --global user.email $EmailAddress
                 if ($LASTEXITCODE -ne 0)
                 {
                     Write-Error "Failed to set global signing key, git returned a non-zero exitcode: $LASTEXITCODE"
