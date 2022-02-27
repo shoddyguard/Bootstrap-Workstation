@@ -14,6 +14,10 @@ class SSHKey
         # Mandatory properties
         $this.KeyName = $SSHKey.KeyName
         $this.KeyType = $SSHKey.KeyType
+        if ($SSHKey.KeyType -notin ('rsa', 'dsa', 'ecdsa', 'ed25519'))
+        {
+            throw "Invalid key type: $($SSHKey.KeyType)"
+        }
 
         # Optional properties
         if ($SSHKey.KeyPath)
@@ -44,6 +48,10 @@ class SSHKey
         # Mandatory properties
         $this.KeyName = $SSHKey.KeyName
         $this.KeyType = $SSHKey.KeyType
+        if ($SSHKey.KeyType -notin ('rsa', 'dsa', 'ecdsa', 'ed25519'))
+        {
+            throw "Invalid key type: $($SSHKey.KeyType)"
+        }
 
         # Optional properties
         if ($SSHKey.KeyPath)
