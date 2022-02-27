@@ -227,5 +227,8 @@ function Install-ChocolateyPackage
         }
     }
     end
-    {}
+    {
+        # Reload the path so we can find any packages we've installed
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+    }
 }
