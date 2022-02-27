@@ -1,37 +1,39 @@
 function New-SSHKeyPair
 {
-    [CmdletBinding()]
+    [CmdletBinding(
+        DefaultParameterSetName = 'default'
+    )]
     param
     (
         # The name of the key
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'default')]
         [ValidateNotNullOrEmpty()]
         [String]
         $Name,
 
         # The type of key pair to create.
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'default')]
         [ValidateSet('rsa', 'dsa', 'ecdsa', 'ed25519')]
         [string]
         $KeyType,
 
         # The path of where the key file should live.
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
         [string]
         $Path,
 
         # The bits of the key.
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
         [int]
         $Bits = 4096,
 
         # The passphrase to protect the key (optional).
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
         [securestring]
         $Passphrase,
 
         # The comment to associate with the key (optional).
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
         [string]
         $Comment,
 

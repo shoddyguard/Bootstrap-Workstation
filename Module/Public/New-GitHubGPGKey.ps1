@@ -51,8 +51,8 @@ function New-GitHubGPGKey
     {
         try
         {
-            $GPGCheck = Get-Command gpg
-            $GitCheck = Get-Command git
+            $GPGCheck = Get-Command gpg -ErrorAction Stop
+            $GitCheck = Get-Command git -ErrorAction Stop
             if (!$GPGCheck -or !$GitCheck)
             {
                 Write-Error 'GPG and/or Git are not installed, have you run the prep script?'
@@ -94,7 +94,7 @@ function New-GitHubGPGKey
                 & git config --global user.email $EmailAddress
                 if ($LASTEXITCODE -ne 0)
                 {
-                    Write-Error "Failed to set global signing key, git returned a non-zero exitcode: $LASTEXITCODE"
+                    Write-Error "Failed to set global signing key, git returned a non-zero exit code: $LASTEXITCODE"
                 }
                 Write-Host "Successfully set global signing key to $($Key.KeyId)" -ForegroundColor Green
             }
