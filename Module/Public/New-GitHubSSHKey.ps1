@@ -10,7 +10,7 @@ function New-GitHubSSHKey
     param
     (
         # The path to store the key-pair.
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string]
         $Path,
@@ -43,9 +43,14 @@ function New-GitHubSSHKey
     {
         try
         {
+            Write-Host "Creating a new ssh key pair for GitHub..."
             $GenerateParams = @{
-                Path    = $Path
+                Name = "github"
                 KeyType = 'ed25519'
+            }
+            if ($Path)
+            {
+                $GenerateParams.Add('Path', $Path)
             }
             if ($Comment)
             {
@@ -57,7 +62,7 @@ function New-GitHubSSHKey
             }
             $KeyInfo = New-SSHKeyPair @GenerateParams
             $GitHubParams = @{
-                Token        = $GitHubToken
+                GitHubToken  = $GitHubToken
                 SSHPublicKey = $KeyInfo.PublicKey
             }
             if ($Comment)
@@ -65,8 +70,8 @@ function New-GitHubSSHKey
                 $GitHubParams.Add('Title', $Comment)
             }
             Add-GitHubSSHKey @GitHubParams
-            # Because we're creating a bit of a weird key for GitHub, we need to tell SSH to use it
-            # instead of the default key.
+            # GitHub doesn't like it when you don't use the default key for SSH, so we'll add it to the user's config.
+            Write-Host "Setting the new key as the explicit key for github.com..."
             Add-SSHHostEntry -HostName 'github.com' -IdentityFile $KeyInfo.PrivateKeyPath
         }
         catch

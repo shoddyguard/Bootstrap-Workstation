@@ -3,21 +3,27 @@ function New-SSHKeyPair
     [CmdletBinding()]
     param
     (
+        # The name of the key
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [String]
+        $Name,
+
         # The type of key pair to create.
         [Parameter(Mandatory = $true)]
         [ValidateSet('rsa', 'dsa', 'ecdsa', 'ed25519')]
         [string]
         $KeyType,
 
-        # The path to the key file.
-        [Parameter(Mandatory = $true)]
+        # The path of where the key file should live.
+        [Parameter(Mandatory = $false)]
         [string]
         $Path,
 
         # The bits of the key.
         [Parameter(Mandatory = $false)]
         [int]
-        $Bits = 2048,
+        $Bits = 4096,
 
         # The passphrase to protect the key (optional).
         [Parameter(Mandatory = $false)]
@@ -27,7 +33,18 @@ function New-SSHKeyPair
         # The comment to associate with the key (optional).
         [Parameter(Mandatory = $false)]
         [string]
-        $Comment
+        $Comment,
+
+        # Special param for pipeline usage from things like import-csv
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipeline = $true,
+            ParameterSetName = 'pipeline',
+            DontShow
+        )]
+        [ValidateNotNullOrEmpty()]
+        [SSHKey[]]
+        $SSHKeys
     )
     
     begin
@@ -37,54 +54,99 @@ function New-SSHKeyPair
         {
             throw 'SSH is not installed on the computer'
         }
+        $CreatedKeys = @()
     }
     
     process
     {
-        try
+        if (!$SSHKeys)
         {
-            $SSHArgs = @('-t', $KeyType, '-b', $Bits, '-f', $Path)
+            # Build up a hashtable using our special class.
+            $SSHKeyObject = @{
+                KeyName = $Name
+                KeyType = $KeyType
+            }
+            if ($Path)
+            {
+                $SSHKeyObject.add('KeyPath',$Path)
+            }
+            if ($Bits)
+            {
+                $SSHKeyObject.add('KeyBits',$Bits)
+            }
             if ($Passphrase)
             {
-                $SSHArgs += @('-N', $Passphrase)
-            }
-            else
-            {
-                $SSHArgs += @('-N', '""')
+                $SSHKeyObject.add('KeyPassphrase',$Passphrase)
             }
             if ($Comment)
             {
-                $SSHArgs += @('-C', $Comment)
+                $SSHKeyObject.add('KeyComment',$Comment)
             }
-            if ((Test-Path $Path))
+            # Convert the hashtable to an object, so we can process it.
+            $SSHKeys = [pscustomobject]$SSHKeyObject
+        }
+        foreach ($SSHKey in $SSHKeys)
+        {
+            try
             {
-                Write-Warning ("The key file at '$Path' already exists, it will be overwritten")
-                Remove-Item $Path -Force
-                # Check for and delete the public key too
-                if ((Test-Path "$Path.pub"))
+                if (!$SSHKey.Path)
                 {
-                    Remove-Item "$Path.pub" -Force
+                    $SSHKeyPath = Join-Path $HOME '.ssh'
+                }
+                else
+                {
+                    $SSHKeyPath = $SSHKey.Path
+                }
+                $FullPath = Join-Path $SSHKeyPath $SSHKey.KeyName
+                $SSHArgs = @('-t', $SSHKey.KeyType, '-b', $SSHKey.KeyBits, '-f', $FullPath)
+                if ($SSHKey.Passphrase)
+                {
+                    $SSHArgs += @('-N', $SSHKey.Passphrase)
+                }
+                else
+                {
+                    $SSHArgs += @('-N', '""')
+                }
+                if ($SSHKey.Comment)
+                {
+                    $SSHArgs += @('-C', $SSHKey.Comment)
+                }
+                if ((Test-Path $FullPath))
+                {
+                    Write-Warning ("The key file at '$FullPath' already exists, it will be overwritten")
+                    Write-Host "Removing existing private key file at '$FullPath'" -ForegroundColor Yellow
+                    Remove-Item $FullPath -Force
+                    # Check for and delete the public key too
+                    if ((Test-Path "$FullPath.pub"))
+                    {
+                        Write-Host "Removing existing public key file at '$FullPath.pub'" -ForegroundColor Yellow
+                        Remove-Item "$FullPath.pub" -Force
+                    }
+                }
+                $SSHArgs += @('-q')
+                Write-Host "Creating key pair at $FullPath"
+                & 'ssh-keygen' $SSHArgs
+                if ($LASTEXITCODE -ne 0)
+                {
+                    Write-Error ("Failed to create key pair at '$FullPath'") -Category InvalidResult -ErrorAction 'Stop'
+                }
+                $PrivateKeyPath = Get-Item -Path $FullPath | Convert-Path
+                $PublicKeyPath = Get-Item -Path ("$PrivateKeyPath" + '.pub')
+                $PublicKey = Get-Content $PublicKeyPath
+                $CreatedKeys += @{
+                    PrivateKeyPath = $PrivateKeyPath
+                    PublicKeyPath  = $PublicKeyPath
+                    PublicKey      = $PublicKey
                 }
             }
-            $SSHArgs += @('-q')
-            Write-Host "Creating key pair at $Path"
-            & 'ssh-keygen' $SSHArgs
-            if ($LASTEXITCODE -ne 0)
+            catch
             {
-                Write-Error ("Failed to create key pair at '$Path'") -Category InvalidResult -ErrorAction 'Stop'
-            }
-            $PrivateKeyPath = Get-Item -Path $Path | Convert-Path
-            $PublicKeyPath = Get-Item -Path ("$PrivateKeyPath" + '.pub')
-            $PublicKey = Get-Content $PublicKeyPath
-            $Return = @{
-                PrivateKeyPath = $PrivateKeyPath
-                PublicKeyPath  = $PublicKeyPath
-                PublicKey      = $PublicKey
+                throw $_
             }
         }
-        catch
+        if ($CreatedKeys.Count -gt 0)
         {
-            throw $_
+            $Return = $CreatedKeys
         }
     }
     
