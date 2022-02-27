@@ -35,7 +35,7 @@ function New-SSHKeyPair
         $SSHCheck = Get-Command 'ssh-keygen' -ErrorAction 'SilentlyContinue'
         if (!$SSHCheck)
         {
-            Write-Error 'SSH is not installed on the computer' -Category InvalidOperation
+            throw 'SSH is not installed on the computer'
         }
     }
     
@@ -48,20 +48,30 @@ function New-SSHKeyPair
             {
                 $SSHArgs += @('-N', $Passphrase)
             }
+            else
+            {
+                $SSHArgs += @('-N', '""')
+            }
             if ($Comment)
             {
                 $SSHArgs += @('-C', $Comment)
             }
             if ((Test-Path $Path))
             {
-                Write-Error ('The file ' + $Path + ' already exists') -Category InvalidOperation
+                Write-Warning ("The key file at '$Path' already exists, it will be overwritten")
+                Remove-Item $Path -Force
+                # Check for and delete the public key too
+                if ((Test-Path "$Path.pub"))
+                {
+                    Remove-Item "$Path.pub" -Force
+                }
             }
             $SSHArgs += @('-q')
             Write-Host "Creating key pair at $Path"
             & 'ssh-keygen' $SSHArgs
             if ($LASTEXITCODE -ne 0)
             {
-                Write-Error ('Failed to create key pair at ' + $Path) -Category InvalidResult
+                Write-Error ("Failed to create key pair at '$Path'") -Category InvalidResult -ErrorAction 'Stop'
             }
             $PrivateKeyPath = Get-Item -Path $Path | Convert-Path
             $PublicKeyPath = Get-Item -Path ("$PrivateKeyPath" + '.pub')
