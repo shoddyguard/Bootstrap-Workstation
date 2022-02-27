@@ -66,13 +66,13 @@ Expire-Date: 0`n
             Write-Debug "GPG Output:`n$Output"
             if ($LASTEXITCODE -ne 0)
             {
-                Write-Error "Failed to generate the key, non-zero exitcode: $LASTEXITCODE"
+                Write-Error "Failed to generate the key, non-zero exit code: $LASTEXITCODE" -Category InvalidOperation -ErrorId 'GPGKeyGenerationFailed' -ErrorAction 'Stop'
             }
             $Today = Get-Date -Format yyyy-MM-dd
             $Keys = & gpg --list-secret-keys --keyid-format=long 2>&1 | Where-Object { $_ -match "sec(?:.*)\/(?<keyid>[A-Z0-9]*) $Today" }
             if ($LASTEXITCODE -ne 0)
             {
-                Write-Error "Failed to list the keys, listing keys returned non-zero exitcode: $LASTEXITCODE"
+                Write-Error "Failed to list the keys, listing keys returned non-zero exit code: $LASTEXITCODE" -Category InvalidOperation -ErrorId 'GPGKeyListingFailed' -ErrorAction 'Stop'
             }
             Write-Debug "Found key(s):`n$($Keys | Out-String)"
             $KeyId = $Matches.keyid
@@ -84,12 +84,12 @@ Expire-Date: 0`n
             }
             if (!$KeyId)
             {
-                Write-Error 'Failed to generate the key, could not find the key'
+                Write-Error 'Failed to generate the key, could not find the key' -Category InvalidOperation -ErrorId 'GPGKeyGenerationFailed' -ErrorAction 'Stop'
             }
             $ArmorExport = & gpg --armor --export $KeyID
             if ($LASTEXITCODE -ne 0)
             {
-                Write-Error "Failed to generate the key, armor export returned a non-zero exitcode: $LASTEXITCODE"
+                Write-Error "Failed to generate the key, armor export returned a non-zero exit code: $LASTEXITCODE" -Category InvalidOperation -ErrorId 'GPGKeyGenerationFailed' -ErrorAction 'Stop'
             }
             $Return = [PSCustomObject]@{
                 PublicKey = ($ArmorExport | Out-String)
