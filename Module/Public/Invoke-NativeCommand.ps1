@@ -216,7 +216,7 @@ function Invoke-NativeCommand
             {
                 $ErrorContent = Get-Content $StdErrFilePath -Raw -ErrorAction SilentlyContinue
                 # Write-Error is preferable to 'throw' as it gives much cleaner output, it also allows more control over how errors are handled
-                Write-Error "$FilePath has returned a non-zero exit code: $($Process.ExitCode).`n$ErrorContent"
+                Write-Error "$FilePath has returned a non-zero exit code: $($Process.ExitCode).`n$ErrorContent" -ErrorAction 'Stop'
             }
 
             # If we've requested the output from this command then return it along with the paths to our StdOut and StdErr files should we need them
@@ -226,7 +226,7 @@ function Invoke-NativeCommand
             }
             catch
             {
-                Write-Error "Unable to get contents of $StdOutFilePath.`n$($_.Exception.Message)"
+                Write-Error "Unable to get contents of $StdOutFilePath.`n$($_.Exception.Message)" -ErrorAction 'Stop'
             }
         }
         else
@@ -268,7 +268,7 @@ function Invoke-NativeCommand
             }
             if ($LASTEXITCODE -notin $ExitCodes)
             {
-                Write-Error "Command $FilePath exited with code $LASTEXITCODE.`n$ErrorStream"
+                Write-Error "Command $FilePath exited with code $LASTEXITCODE.`n$ErrorStream" -ErrorAction 'Stop'
             }
         }
     }
@@ -281,6 +281,10 @@ function Invoke-NativeCommand
             if ($OutputContent)
             {
                 $Return.Add('OutputContent', $OutputContent)
+            }
+            else
+            {
+                $Return.Add('OutputContent', $null)
             }
             if ($StdOutFilePath)
             {
