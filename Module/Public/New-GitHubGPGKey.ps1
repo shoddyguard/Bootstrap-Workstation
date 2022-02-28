@@ -18,7 +18,7 @@ function New-GitHubGPGKey
         # The email address of the user
         [Parameter(Mandatory = $true)]
         [string]
-        [Alias("Email")]
+        [Alias('Email')]
         $EmailAddress,
 
         # The GitHub token for uploading the key
@@ -44,7 +44,12 @@ function New-GitHubGPGKey
         # If set will enable the key to be used for signing globally
         [Parameter(Mandatory = $false)]
         [switch]
-        $EnableGlobalSigning
+        $EnableGlobalSigning,
+
+        # If set will forcefully overwrite an existing key
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $Force
     )
     
     begin
@@ -69,34 +74,42 @@ function New-GitHubGPGKey
         try
         {
             $GenerateArgs = @{
-                UserName = $UserName
+                UserName     = $UserName
                 EmailAddress = $EmailAddress
-                length = $Length
+                length       = $Length
             }
             if ($Passphrase)
             {
-                $GenerateArgs.Add('Passphrase',$Passphrase)
+                $GenerateArgs.Add('Passphrase', $Passphrase)
             }
             if ($Comment)
             {
-                $GenerateArgs.Add('Comment',$Comment)
+                $GenerateArgs.Add('Comment', $Comment)
+            }
+            if ($Force)
+            {
+                $GenerateArgs.Add('Force', $true)
             }
             # Generate the key
             $Key = New-GeneratedGPGKey @GenerateArgs
-            # Add it to GitHub
-            Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
-            if ($EnableGlobalSigning)
+            # Only upload the key if we've generated a new one.
+            if ($Key)
             {
-                # Maybe move this to a separate cmdlet?
-                Write-Host "Setting global signing key to $($Key.KeyID)"
-                & git config --global user.signingkey $Key.KeyId
-                & git config --global user.name $UserName
-                & git config --global user.email $EmailAddress
-                if ($LASTEXITCODE -ne 0)
+                # Add it to GitHub
+                Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
+                if ($EnableGlobalSigning)
                 {
-                    Write-Error "Failed to set global signing key, git returned a non-zero exit code: $LASTEXITCODE"
+                    # Maybe move this to a separate cmdlet?
+                    Write-Host "Setting global signing key to $($Key.KeyID)"
+                    & git config --global user.signingkey $Key.KeyId
+                    & git config --global user.name $UserName
+                    & git config --global user.email $EmailAddress
+                    if ($LASTEXITCODE -ne 0)
+                    {
+                        Write-Error "Failed to set global signing key, git returned a non-zero exit code: $LASTEXITCODE"
+                    }
+                    Write-Host "Successfully set global signing key to $($Key.KeyId)" -ForegroundColor Green
                 }
-                Write-Host "Successfully set global signing key to $($Key.KeyId)" -ForegroundColor Green
             }
         }
         catch

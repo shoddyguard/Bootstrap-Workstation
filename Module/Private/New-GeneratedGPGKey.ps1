@@ -26,7 +26,12 @@ function New-GeneratedGPGKey
         # The length of the key
         [Parameter(Mandatory = $false)]
         [int]
-        $Length = 4096
+        $Length = 4096,
+
+        # If set will forcefully overwrite an existing key
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $Force
     )
     
     begin
@@ -57,8 +62,24 @@ Expire-Date: 0`n
     
     process
     {
-        try
+        if (!$Force)
         {
+            try
+            {
+                $GPGKeyCheck = Invoke-NativeCommand -FilePath 'gpg' -ArgumentList '--list-keys' -PassThru | Select-Object -ExpandProperty 'OutputContent' | Out-String
+                if (($GPGKeyCheck -like "*$EmailAddress*") -and ($GPGKeyCheck -like "*$UserName*"))
+                {
+                    Write-Verbose "Key already exists that matches $UserName/$EmailAddress, use -Force if you wish to force creation of a new key"
+                    return
+                }
+            }
+            catch
+            {
+                throw "Unable to check for existing key.`n$($_.Exception.Message)"
+            }
+        }
+        try
+        {   
             Write-Host "Generating GPG key for $EmailAddress..."
             # Use the Temp PSDrive.
             $TempFile = New-Item -Path (Join-Path 'Temp:' -ChildPath 'GPGKey.txt') -Force -Value $FileContent | Convert-Path
@@ -78,7 +99,7 @@ Expire-Date: 0`n
             $KeyId = $Matches.keyid
             if ($KeyId.count -gt 1)
             {
-                Write-Verbose "Found multiple keys, using the newest one"
+                Write-Verbose 'Found multiple keys, using the newest one'
                 # The most recent key is always at the end of the list
                 $KeyId = $KeyId[-1]
             }
@@ -93,9 +114,9 @@ Expire-Date: 0`n
             }
             $Return = [PSCustomObject]@{
                 PublicKey = ($ArmorExport | Out-String)
-                KeyId = $KeyId
-                Name = $UserName
-                Email = $EmailAddress
+                KeyId     = $KeyId
+                Name      = $UserName
+                Email     = $EmailAddress
             }
 
         }
