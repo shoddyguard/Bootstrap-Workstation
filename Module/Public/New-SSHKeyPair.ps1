@@ -38,7 +38,7 @@ function New-SSHKeyPair
         $Comment,
 
         # If set will forcefully overwrite the key if it already exists.
-        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
+        [Parameter(Mandatory = $false)]
         [switch]
         $Force,
 
