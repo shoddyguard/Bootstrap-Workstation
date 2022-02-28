@@ -26,7 +26,7 @@ param
     # Any additional modules from PSGallery that you want to install
     [Parameter(Mandatory = $false)]
     [array]
-    $PSGalleryModules,
+    $PSGalleryModuleListPath,
 
     # Path to a Chocolatey package file that you want to install
     [Parameter(Mandatory = $false)]
@@ -134,18 +134,27 @@ if ($RequiredPackages)
     }
     Write-Host 'Successfully installed Chocolatey packages.' -ForegroundColor Green
 }
-if ($PSGalleryModules)
+if ($PSGalleryModuleListPath)
 {
     Write-Host 'Installing PowerShell Gallery modules...'
     try
     {
+        $PSGalleryModules = Import-Csv -Path $PSGalleryModuleListPath
         foreach ($PSGalleryModule in $PSGalleryModules)
         {
-            $ModuleCheck = Get-Module $PSGalleryModule
+            $ModuleCheck = Get-Module $PSGalleryModule.ModuleName -ListAvailable
             if ((!$ModuleCheck) -or ($Force))
             {
                 Write-Debug "Installing $PSGalleryModule"
-                Install-Module -Name $PSGalleryModule -Force
+                $InstallParams = @{
+                    Name = $PSGalleryModule.ModuleName
+                    Force = $true
+                }
+                if ($PSGalleryModule.ModuleVersion)
+                {
+                    $InstallParams.Version = $PSGalleryModule.ModuleVersion
+                }
+                Install-Module @InstallParams
             }
         }
     }
