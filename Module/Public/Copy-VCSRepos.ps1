@@ -36,8 +36,10 @@ function Copy-VCSRepos
     
     process
     {
+        Write-Host ($VCSRepos | Out-String)
         foreach ($VCSRepo in $VCSRepos)
         {
+            $ClonePath = $Path
             try
             {
                 $CloneParams = @{
@@ -45,13 +47,13 @@ function Copy-VCSRepos
                 }
                 if ($VCSRepo.LocalPath)
                 {
-                    $Path = $VCSRepo.LocalPath
+                    $ClonePath = $VCSRepo.LocalPath
                 }
                 if ($VCSRepo.ParentDirectory)
                 {
-                    $Path = Join-Path $Path $VCSRepo.ParentDirectory
+                    $ClonePath = Join-Path $Path $VCSRepo.ParentDirectory
                 }
-                $CloneParams.Path = $Path
+                $CloneParams.Path = $ClonePath
                 if ($VCSRepo.RepoName)
                 {
                     $CloneParams.Name = $VCSRepo.RepoName
