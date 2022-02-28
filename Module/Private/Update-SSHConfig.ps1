@@ -16,7 +16,7 @@ function Update-SSHConfig
             $SSHPath = Join-Path $HOME '.ssh' 'config'
             if (!(Test-Path $SSHPath))
             {
-                New-Item $SSHPath -ItemType File -Force
+                New-Item $SSHPath -ItemType File -Force | Out-Null
             }
             $SSHConfig = Get-Content $SSHPath -Raw
         }
@@ -30,6 +30,11 @@ function Update-SSHConfig
     {
         try
         {
+            if ($SSHConfig -match [Regex]::Escape($Content))
+            {
+                # Don't do anything if the content is already in the file
+                return
+            }
             $UpdatedConfig = $SSHConfig + $Content
             Set-Content $SSHPath $UpdatedConfig -Force
         }
