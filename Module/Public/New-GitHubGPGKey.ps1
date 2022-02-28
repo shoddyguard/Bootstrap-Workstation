@@ -92,24 +92,13 @@ function New-GitHubGPGKey
             }
             # Generate the key
             $Key = New-GeneratedGPGKey @GenerateArgs
-            # Only upload the key if we've generated a new one.
+            # Only upload the key if we've generated a new one (we may not have done if we've already uploaded it)
             if ($Key)
             {
                 # Add it to GitHub
+                Write-Host "KeyID: $($Key.KeyID)"
                 Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
-                if ($EnableGlobalSigning)
-                {
-                    # Maybe move this to a separate cmdlet?
-                    Write-Host "Setting global signing key to $($Key.KeyID)"
-                    & git config --global user.signingkey $Key.KeyId
-                    & git config --global user.name $UserName
-                    & git config --global user.email $EmailAddress
-                    if ($LASTEXITCODE -ne 0)
-                    {
-                        Write-Error "Failed to set global signing key, git returned a non-zero exit code: $LASTEXITCODE"
-                    }
-                    Write-Host "Successfully set global signing key to $($Key.KeyId)" -ForegroundColor Green
-                }
+                $Return = $Key.KeyID
             }
         }
         catch
@@ -120,6 +109,14 @@ function New-GitHubGPGKey
     
     end
     {
-        
+        if ($Return)
+        {
+            Return $Return
+        }
+        else
+        {
+            return $null
+        }
+
     }
 }
