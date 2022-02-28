@@ -50,7 +50,7 @@ function Copy-VCSRepos
                 }
                 if ($VCSRepo.ParentDirectory)
                 {
-                    $ClonePath = Join-Path $Path $VCSRepo.ParentDirectory
+                    $ClonePath = Join-Path $ClonePath $VCSRepo.ParentDirectory
                 }
                 $CloneParams.Path = $ClonePath
                 if ($VCSRepo.RepoName)
