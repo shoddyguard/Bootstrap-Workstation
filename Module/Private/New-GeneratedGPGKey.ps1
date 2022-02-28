@@ -66,7 +66,7 @@ Expire-Date: 0`n
         {
             try
             {
-                $GPGKeyCheck = Invoke-NativeCommand -FilePath 'gpg' -ArgumentList '--list-keys' -PassThru | Select-Object -ExpandProperty 'OutputContent' | Out-String
+                $GPGKeyCheck = Invoke-NativeCommand -FilePath 'gpg' -ArgumentList '--list-keys' -PassThru -SuppressOutput | Select-Object -ExpandProperty 'OutputContent' | Out-String
                 if (($GPGKeyCheck -like "*$EmailAddress*") -and ($GPGKeyCheck -like "*$UserName*"))
                 {
                     Write-Verbose "Key already exists that matches $UserName/$EmailAddress, use -Force if you wish to force creation of a new key"
