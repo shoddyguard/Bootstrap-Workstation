@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Installs Chocolatey packages.
+.DESCRIPTION
+    Installs Chocolatey packages.
+#>
 function Install-ChocolateyPackage
 {
     [CmdletBinding(

@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Helper cmdlet for running native commands.
+.DESCRIPTION
+    Helper cmdlet for running native commands.
+#>
 function Invoke-NativeCommand
 {
     [CmdletBinding()]

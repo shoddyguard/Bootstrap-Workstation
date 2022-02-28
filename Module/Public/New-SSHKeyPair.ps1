@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Creates an SSH key pair.
+.DESCRIPTION
+    Creates an SSH key pair.
+#>
 function New-SSHKeyPair
 {
     [CmdletBinding(

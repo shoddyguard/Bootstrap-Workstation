@@ -3,15 +3,6 @@
     Clones a given set of VCS repositories.
 .DESCRIPTION
     Clones a given set of VCS repositories.
-.EXAMPLE
-    PS C:\> <example usage>
-    Explanation of what the example does
-.INPUTS
-    Inputs (if any)
-.OUTPUTS
-    Output (if any)
-.NOTES
-    General notes
 #>
 function Copy-VCSRepos
 {
