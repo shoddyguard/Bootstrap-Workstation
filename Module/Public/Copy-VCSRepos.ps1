@@ -36,7 +36,6 @@ function Copy-VCSRepos
     
     process
     {
-        Write-Host ($VCSRepos | Out-String)
         foreach ($VCSRepo in $VCSRepos)
         {
             $ClonePath = $Path
