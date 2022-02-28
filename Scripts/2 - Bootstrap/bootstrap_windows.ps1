@@ -247,7 +247,6 @@ if ($SetGlobalGitConfig)
             $SetParams.Add('GitSigningApplicationPath', $GPGPath)
             if ($GPGKey)
             {
-                Write-Host "Signing key: $GPGKey"
                 $SetParams.Add('GitSigningKey', $GPGKey)
             }
         }

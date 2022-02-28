@@ -69,7 +69,6 @@ function Set-GlobalGitConfig
             }
             if ($GitSigningKey)
             {
-                Write-Host "Signing key: $GitSigningKey"
                 Invoke-NativeCommand -FilePath 'git' -ArgumentList @('config', '--global', 'user.signingkey', $GitSigningKey)
             }
             if ($GitSigningApplicationPath)

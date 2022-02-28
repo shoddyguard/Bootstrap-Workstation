@@ -96,7 +96,6 @@ function New-GitHubGPGKey
             if ($Key)
             {
                 # Add it to GitHub
-                Write-Host "KeyID: $($Key.KeyID)"
                 Add-GitHubGPGKey -GitHubToken $GitHubToken -GPGKey $Key.PublicKey
                 $Return = $Key.KeyID
             }
