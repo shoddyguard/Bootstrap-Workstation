@@ -25,9 +25,9 @@ function Enable-RunAsOnStartMenu
             {
                 if (!(Test-Path $RegPath))
                 {
-                    New-Item $RegPath
+                    New-Item $RegPath | Out-Null
                 }
-                New-ItemProperty -Path $RegPath -Name $Name -Value $Value -Force
+                New-ItemProperty -Path $RegPath -Name $Name -Value $Value -Force | Out-Null
             }
             catch
             {
