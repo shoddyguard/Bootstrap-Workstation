@@ -37,6 +37,11 @@ function New-SSHKeyPair
         [string]
         $Comment,
 
+        # If set will forcefully overwrite the key if it already exists.
+        [Parameter(Mandatory = $false, ParameterSetName = 'default')]
+        [switch]
+        $Force,
+
         # Special param for pipeline usage from things like import-csv
         [Parameter(
             Mandatory = $false,
@@ -70,19 +75,19 @@ function New-SSHKeyPair
             }
             if ($Path)
             {
-                $SSHKeyObject.add('KeyPath',$Path)
+                $SSHKeyObject.add('KeyPath', $Path)
             }
             if ($Bits)
             {
-                $SSHKeyObject.add('KeyBits',$Bits)
+                $SSHKeyObject.add('KeyBits', $Bits)
             }
             if ($Passphrase)
             {
-                $SSHKeyObject.add('KeyPassphrase',$Passphrase)
+                $SSHKeyObject.add('KeyPassphrase', $Passphrase)
             }
             if ($Comment)
             {
-                $SSHKeyObject.add('KeyComment',$Comment)
+                $SSHKeyObject.add('KeyComment', $Comment)
             }
             # Convert the hashtable to an object, so we can process it.
             $SSHKeys = [pscustomobject]$SSHKeyObject
@@ -115,14 +120,23 @@ function New-SSHKeyPair
                 }
                 if ((Test-Path $FullPath))
                 {
-                    Write-Warning ("The key file at '$FullPath' already exists, it will be overwritten")
-                    Write-Host "Removing existing private key file at '$FullPath'" -ForegroundColor Yellow
-                    Remove-Item $FullPath -Force
-                    # Check for and delete the public key too
-                    if ((Test-Path "$FullPath.pub"))
+                    if ($Force)
                     {
-                        Write-Host "Removing existing public key file at '$FullPath.pub'" -ForegroundColor Yellow
-                        Remove-Item "$FullPath.pub" -Force
+                        Write-Warning ("The key file at '$FullPath' already exists, it will be overwritten")
+                        Write-Host "Removing existing private key file at '$FullPath'" -ForegroundColor Yellow
+                        Remove-Item $FullPath -Force
+                        # Check for and delete the public key too
+                        if ((Test-Path "$FullPath.pub"))
+                        {
+                            Write-Host "Removing existing public key file at '$FullPath.pub'" -ForegroundColor Yellow
+                            Remove-Item "$FullPath.pub" -Force
+                        }
+                    }
+                    else
+                    {
+                        # Don't overwrite the key
+                        Write-Verbose "Key file at '$FullPath' already exists, use -Force to overwrite"
+                        Return
                     }
                 }
                 $SSHArgs += @('-q')

@@ -29,9 +29,12 @@ function New-GitHubSSHKey
         # An optional passphrase for the key-pair.
         [Parameter(Mandatory = $false)]
         [securestring]
-        $Passphrase
+        $Passphrase,
 
-
+        # If set will forcefully overwrite an existing key-pair.
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $Force
     )
     
     begin
@@ -43,9 +46,9 @@ function New-GitHubSSHKey
     {
         try
         {
-            Write-Host "Creating a new ssh key pair for GitHub..."
+            Write-Host 'Creating a new ssh key pair for GitHub...'
             $GenerateParams = @{
-                Name = "github"
+                Name    = 'github'
                 KeyType = 'ed25519'
             }
             if ($Path)
@@ -60,19 +63,28 @@ function New-GitHubSSHKey
             {
                 $GenerateParams.Add('Passphrase', $Passphrase)
             }
-            $KeyInfo = New-SSHKeyPair @GenerateParams
-            $GitHubParams = @{
-                GitHubToken  = $GitHubToken
-                SSHPublicKey = $KeyInfo.PublicKey
-            }
-            if ($Comment)
+            if ($Force)
             {
-                $GitHubParams.Add('Title', $Comment)
+                $GenerateParams.Add('Force', $true)
             }
-            Add-GitHubSSHKey @GitHubParams
-            # GitHub doesn't like it when you don't use the default key for SSH, so we'll add it to the user's config.
-            Write-Host "Setting the new key as the explicit key for github.com..."
-            Add-SSHHostEntry -HostName 'github.com' -IdentityFile $KeyInfo.PrivateKeyPath
+            $KeyInfo = New-SSHKeyPair @GenerateParams
+            # Only try to add a key to GitHub if one was created.
+            # Otherwise, it's likely the key already exists.
+            if ($KeyInfo)
+            {
+                $GitHubParams = @{
+                    GitHubToken  = $GitHubToken
+                    SSHPublicKey = $KeyInfo.PublicKey
+                }
+                if ($Comment)
+                {
+                    $GitHubParams.Add('Title', $Comment)
+                }
+                Add-GitHubSSHKey @GitHubParams
+                # GitHub doesn't like it when you don't use the default key for SSH, so we'll add it to the user's config.
+                Write-Host 'Setting the new key as the explicit key for github.com...'
+                Add-SSHHostEntry -HostName 'github.com' -IdentityFile $KeyInfo.PrivateKeyPath
+            }
         }
         catch
         {
