@@ -46,7 +46,6 @@ function New-GitHubSSHKey
     {
         try
         {
-            Write-Host 'Creating a new ssh key pair for GitHub...'
             $GenerateParams = @{
                 Name    = 'github'
                 KeyType = 'ed25519'
@@ -72,6 +71,7 @@ function New-GitHubSSHKey
             # Otherwise, it's likely the key already exists.
             if ($KeyInfo)
             {
+                Write-Host 'Created a new ssh key pair for GitHub...'
                 $GitHubParams = @{
                     GitHubToken  = $GitHubToken
                     SSHPublicKey = $KeyInfo.PublicKey
