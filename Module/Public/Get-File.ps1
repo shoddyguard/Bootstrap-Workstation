@@ -13,6 +13,7 @@ function Get-File
     (
         # The path to the file to get.
         [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
         [string]
         $Path
     )
@@ -30,7 +31,7 @@ function Get-File
             try
             {
                 Write-Verbose "Attempting to download '$Path' to a temporary location."
-                $TempFile = New-TemporaryFile | Convert-Path
+                $TempFile = New-TemporaryFile | Convert-Path -ErrorAction 'Stop'
                 # Create a HTTPClient to download the file.
                 $HTTPClient = New-Object System.Net.Http.HttpClient
                 $Response = $HTTPClient.GetAsync($Path)
@@ -54,7 +55,7 @@ function Get-File
             try
             {
                 Write-Verbose "Attempting to get '$Path' from the local file system."
-                $Item = Get-Item $Path | Convert-Path
+                $Item = Get-Item $Path  -ErrorAction 'Stop' | Convert-Path
                 $Return = $Item
             }
             catch
