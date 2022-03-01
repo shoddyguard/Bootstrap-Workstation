@@ -17,7 +17,12 @@ function Copy-PowerShellProfile
         # If set will apply the profile to Windows/Desktop PowerShell as well.
         [Parameter(Mandatory = $false)]
         [switch]
-        $ApplyToDesktop
+        $ApplyToDesktop,
+
+        # If set will forcefully overwrite an existing profile.
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $Force
     )
     
     begin
@@ -54,6 +59,7 @@ function Copy-PowerShellProfile
                 }
                 else
                 {
+                    Write-Verbose "Applying profile to Windows/Desktop PowerShell..."
                     $WindowsProfile = "C:\Users\$env:USERNAME\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
                     if ((Test-Path $WindowsProfile))
                     {

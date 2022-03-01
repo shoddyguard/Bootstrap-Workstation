@@ -73,6 +73,11 @@ param
     [bool]
     $SetGlobalGitConfig = $true,
 
+    # If set will apply the PowerShell profile to the Windows/Desktop version of PowerShell too
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $ApplyPowerShellProfileToDesktop = $false,
+
     # If set will force overwrite of existing files
     [Parameter(Mandatory = $false)]
     [switch]
@@ -159,7 +164,18 @@ if ($PowerShellProfilePath)
 {
     try
     {
-        Copy-PowerShellProfile $PowerShellProfilePath
+        $ProfileParams = @{
+            Path = $PowerShellProfilePath
+        }
+        if ($Force)
+        {
+            $ProfileParams.Force = $true
+        }
+        if ($ApplyPowerShellProfileToDesktop)
+        {
+            $ProfileParams.ApplyToDesktop = $true
+        }
+        Copy-PowerShellProfile @ProfileParams
     }
     catch
     {
