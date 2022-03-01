@@ -28,6 +28,11 @@ param
     [string]
     $PSGalleryModuleListPath,
 
+    # Any additional modules from private repositories that you want to install
+    [Parameter(Mandatory = $false)]
+    [string]
+    $PrivateRepoModuleListPath,
+
     # Path to a Chocolatey package file that you want to install
     [Parameter(Mandatory = $false)]
     [string]
@@ -167,6 +172,19 @@ if ($PSGalleryModuleListPath)
     catch
     {
         throw "Failed to install PowerShell Gallery modules.`n$($_.Exception.Message)"
+    }
+}
+if ($PrivateRepoModuleListPath)
+{
+    try
+    {
+        $PrivateModuleFile = Get-File $PrivateRepoModuleListPath
+        $PrivateModules = Import-Csv -Path $PrivateModuleFile
+        $PrivateModules | Install-PrivateFeedModule -Force:($PSBoundParameters['Force'] -eq $true)
+    }
+    catch
+    {
+        throw $_.Exception.Message
     }
 }
 
