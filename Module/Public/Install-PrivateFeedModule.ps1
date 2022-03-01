@@ -78,13 +78,13 @@ function Install-PrivateFeedModule
             }
             foreach ($Object in $InputObject)
             {
-                if (!$Credential)
-                {
-                    $Credential = Get-Credential -Message "Enter your credentials for $($Object.RepositoryName)"
-                }
                 $RepositoryCheck = Get-PSRepository | Where-Object { $_.Name -eq $Object.RepositoryName }
                 if (!$RepositoryCheck)
                 {
+                    if (!$Credential)
+                    {
+                        $Credential = Get-Credential -Message "Enter your credentials for $($Object.RepositoryName)"
+                    }
                     Register-PSRepository `
                         -Name $Object.RepositoryName `
                         -SourceLocation $Object.RepositoryURL `
@@ -107,6 +107,10 @@ function Install-PrivateFeedModule
                 }
                 if ((!$ModuleCheck) -or ($Force))
                 {
+                    if (!$Credential)
+                    {
+                        $Credential = Get-Credential -Message "Enter your credentials for $($Object.RepositoryName)"
+                    }
                     $ModuleParams = @{
                         Name       = $Object.ModuleName
                         Repository = $Object.RepositoryName
