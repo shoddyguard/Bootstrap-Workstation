@@ -43,6 +43,21 @@ param
     [string]
     $VCSRepoListPath,
 
+    # Path to a PowerShell profile to copy to the local machine
+    [Parameter(Mandatory = $false)]
+    [string]
+    $PowerShellProfilePath,
+
+    # The git username to use for the current user (if setting up gpg)
+    [Parameter(Mandatory = $false)]
+    [string]
+    $GitUsername,
+    
+    # The git email to use for the current user (if setting up gpg)
+    [Parameter(Mandatory = $false)]
+    [string]
+    $GitEmail,
+
     # Whether to generate a GitHub SSH key for the current user
     [Parameter(Mandatory = $false)]
     [bool]
@@ -52,16 +67,6 @@ param
     [Parameter(Mandatory = $false)]
     [bool]
     $GenerateGitHubGPGKey = $true,
-
-    # The git username to use for the current user
-    [Parameter(Mandatory = $false)]
-    [string]
-    $GitUsername,
-
-    # The git email to use for the current user
-    [Parameter(Mandatory = $false)]
-    [string]
-    $GitEmail,
 
     # If set will configure global git settings
     [Parameter(Mandatory = $false)]
@@ -149,6 +154,19 @@ if ($PSGalleryModuleListPath)
         throw "Failed to install PowerShell Gallery modules.`n$($_.Exception.Message)"
     }
 }
+
+if ($PowerShellProfilePath)
+{
+    try
+    {
+        Copy-PowerShellProfile $PowerShellProfilePath
+    }
+    catch
+    {
+        throw $_.Exception.Message
+    }
+}
+
 if ($GenerateGitHubSSHKey -or $SSHKeyListPath)
 {
     try
