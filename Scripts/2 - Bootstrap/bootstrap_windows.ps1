@@ -48,6 +48,11 @@ param
     [string]
     $PowerShellProfilePath,
 
+    # Path to a Oh-My-PoSh profile to copy to the local machine
+    [Parameter(Mandatory = $false)]
+    [string]
+    $OhMyPoShProfilePath,
+
     # The git username to use for the current user (if setting up gpg)
     [Parameter(Mandatory = $false)]
     [string]
@@ -77,6 +82,11 @@ param
     [Parameter(Mandatory = $false)]
     [bool]
     $ApplyPowerShellProfileToDesktop = $false,
+
+    # If set will apply the Oh-My-Posh profile to the Windows/Desktop version of PowerShell too
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $ApplyOMPProfileToDesktop = $false,
 
     # If set will force overwrite of existing files
     [Parameter(Mandatory = $false)]
@@ -176,6 +186,29 @@ if ($PowerShellProfilePath)
             $ProfileParams.ApplyToDesktop = $true
         }
         Copy-PowerShellProfile @ProfileParams
+    }
+    catch
+    {
+        throw $_.Exception.Message
+    }
+}
+
+if ($OhMyPoShProfilePath)
+{
+    try
+    {
+        $ProfileParams = @{
+            Path = $OhMyPoShProfilePath
+        }
+        if ($Force)
+        {
+            $ProfileParams.Force = $true
+        }
+        if ($ApplyOMPProfileToDesktop)
+        {
+            $ProfileParams.ApplyToDesktop = $true
+        }
+        Copy-OhMyPoShProfile @ProfileParams
     }
     catch
     {
