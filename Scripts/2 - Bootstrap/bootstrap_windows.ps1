@@ -25,7 +25,7 @@ param
 
     # Any additional modules from PSGallery that you want to install
     [Parameter(Mandatory = $false)]
-    [array]
+    [string]
     $PSGalleryModuleListPath,
 
     # Path to a Chocolatey package file that you want to install
@@ -63,7 +63,7 @@ param
     [string]
     $GitEmail,
 
-    # If set will configure global git settings #TODO: Implement this
+    # If set will configure global git settings
     [Parameter(Mandatory = $false)]
     [bool]
     $SetGlobalGitConfig = $true,
@@ -113,7 +113,8 @@ if ($ChocolateyPackageListPath)
     Write-Host 'Importing Chocolatey package list...'
     try
     {
-        $ChocoPackages = Import-Csv -Path $ChocolateyPackageListPath
+        $ChocoFile = Get-File $ChocolateyPackageListPath
+        $ChocoPackages = Import-Csv -Path $ChocoFile
         $RequiredPackages += $ChocoPackages
     }
     catch
@@ -136,33 +137,17 @@ if ($RequiredPackages)
 }
 if ($PSGalleryModuleListPath)
 {
-    Write-Host 'Installing PowerShell Gallery modules...'
+    
     try
     {
-        $PSGalleryModules = Import-Csv -Path $PSGalleryModuleListPath
-        foreach ($PSGalleryModule in $PSGalleryModules)
-        {
-            $ModuleCheck = Get-Module $PSGalleryModule.ModuleName -ListAvailable
-            if ((!$ModuleCheck) -or ($Force))
-            {
-                Write-Debug "Installing $PSGalleryModule"
-                $InstallParams = @{
-                    Name = $PSGalleryModule.ModuleName
-                    Force = $true
-                }
-                if ($PSGalleryModule.ModuleVersion)
-                {
-                    $InstallParams.Version = $PSGalleryModule.ModuleVersion
-                }
-                Install-Module @InstallParams
-            }
-        }
+        $PSGalleryFile = Get-File $PSGalleryModuleListPath
+        $PSGalleryModules = Import-Csv -Path $PSGalleryFile
+        $PSGalleryModules | Install-PSGalleryModule -Force:($PSBoundParameters['Force'] -eq $true)
     }
     catch
     {
         throw "Failed to install PowerShell Gallery modules.`n$($_.Exception.Message)"
     }
-    Write-Host 'Successfully installed PowerShell Gallery modules.' -ForegroundColor Green
 }
 if ($GenerateGitHubSSHKey -or $SSHKeyListPath)
 {
@@ -204,7 +189,8 @@ if ($SSHKeyListPath)
     Write-Host 'Generating SSH keys...'
     try
     {
-        $SSHKeysToCreate = Import-Csv -Path $SSHKeyListPath
+        $SSHKeyFile = Get-File $SSHKeyListPath
+        $SSHKeysToCreate = Import-Csv -Path $SSHKeyFile
         $SSHKeys = $SSHKeysToCreate | New-SSHKeyPair -Force:($PSBoundParameters['Force'] -eq $true)
         Write-Debug ($SSHKeys | Out-String)
     }
@@ -218,7 +204,8 @@ if ($VCSRepoListPath)
 {
     try
     {
-        $VCSReposToClone = Import-Csv -Path $VCSRepoListPath
+        $VCSRepoFile = Get-File $VCSRepoListPath
+        $VCSReposToClone = Import-Csv -Path $VCSRepoFile
         $VCSReposToClone | Copy-VCSRepos
     }
     catch
