@@ -1,3 +1,4 @@
 KeyName,KeyType,KeyBits,KeyPassphrase,KeyComment
 work_machines,rsa,2048,superSecure,for accessing work stuff
 home_machines,rsa,,,for accessing home stuff
+new_key,rsa,,,test
