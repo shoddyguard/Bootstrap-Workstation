@@ -26,10 +26,10 @@ function New-GitHubSSHKey
         [string]
         $Comment,
 
-        # An optional passphrase for the key-pair.
+        # If set will password protect the key-pair.
         [Parameter(Mandatory = $false)]
-        [securestring]
-        $Passphrase,
+        [bool]
+        $PassphraseProtected = $false,
 
         # If set will forcefully overwrite an existing key-pair.
         [Parameter(Mandatory = $false)]
@@ -58,9 +58,9 @@ function New-GitHubSSHKey
             {
                 $GenerateParams.Add('Comment', $Comment)
             }
-            if ($Passphrase)
+            if ($PassphraseProtected)
             {
-                $GenerateParams.Add('Passphrase', $Passphrase)
+                $GenerateParams.Add('PassphraseProtected', $PassphraseProtected)
             }
             if ($Force)
             {

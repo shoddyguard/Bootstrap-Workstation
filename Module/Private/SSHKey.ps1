@@ -5,7 +5,7 @@ class SSHKey
     [string]$KeyType
     [string]$KeyPath
     [int]$KeyBits
-    [string]$KeyPassphrase
+    [bool]$SetPassPhrase
     [string]$KeyComment
 
     # This constructor is used to create a new key from a custom object (useful for ingesting CSV files and the like)
@@ -32,9 +32,9 @@ class SSHKey
         {
             $this.KeyBits = 4096
         }
-        if ($SSHKey.KeyPassphrase)
+        if ($SSHKey.SetPassPhrase)
         {
-            $this.KeyPassphrase = $SSHKey.KeyPassphrase
+            $this.SetPassPhrase = $true
         }
         if ($SSHKey.KeyComment)
         {
@@ -66,9 +66,9 @@ class SSHKey
         {
             $this.KeyBits = 4096
         }
-        if ($SSHKey.KeyPassphrase)
+        if ($SSHKey.SetPassPhrase)
         {
-            $this.KeyPassphrase = $SSHKey.KeyPassphrase
+            $this.SetPassPhrase = $true
         }
         if ($SSHKey.KeyComment)
         {

@@ -33,10 +33,10 @@ function New-SSHKeyPair
         [int]
         $Bits = 4096,
 
-        # The passphrase to protect the key (optional).
+        # If set will create a passphrase protected key.
         [Parameter(Mandatory = $false, ParameterSetName = 'default')]
-        [securestring]
-        $Passphrase,
+        [bool]
+        $PassphraseProtected = $false,
 
         # The comment to associate with the key (optional).
         [Parameter(Mandatory = $false, ParameterSetName = 'default')]
@@ -87,9 +87,9 @@ function New-SSHKeyPair
             {
                 $SSHKeyObject.add('KeyBits', $Bits)
             }
-            if ($Passphrase)
+            if ($PassphraseProtected)
             {
-                $SSHKeyObject.add('KeyPassphrase', $Passphrase)
+                $SSHKeyObject.add('SetPassphrase', $PassphraseProtected)
             }
             if ($Comment)
             {
@@ -112,9 +112,10 @@ function New-SSHKeyPair
                 }
                 $FullPath = Join-Path $SSHKeyPath $SSHKey.KeyName
                 $SSHArgs = @('-t', $SSHKey.KeyType, '-b', $SSHKey.KeyBits, '-f', $FullPath)
-                if ($SSHKey.Passphrase)
+                if ($SSHKey.SetPassPhrase)
                 {
-                    $SSHArgs += @('-N', $SSHKey.Passphrase)
+                    $Passphrase = Read-Host "Enter passphrase you want to use to secure the key '$($SSHKey.KeyName)'" -AsSecureString
+                    $SSHArgs += @('-N', "$($Passphrase | ConvertFrom-SecureString -AsPlainText)")
                 }
                 else
                 {

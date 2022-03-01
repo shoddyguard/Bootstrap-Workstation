@@ -1,17 +1,6 @@
 <#
 .SYNOPSIS
-    Short description
-.DESCRIPTION
-    Long description
-.EXAMPLE
-    PS C:\> <example usage>
-    Explanation of what the example does
-.INPUTS
-    Inputs (if any)
-.OUTPUTS
-    Output (if any)
-.NOTES
-    General notes
+    This script bootstraps a new Windows based workstation.
 #>
 #Requires -Version 7.0
 #Requires -RunAsAdministrator
@@ -72,6 +61,12 @@ param
     [Parameter(Mandatory = $false)]
     [bool]
     $GenerateGitHubSSHKey = $true,
+
+    # Whether to protect the current user's GitHub SSH key with a passphrase.
+    # Changing this value will NOT change the passphrase on an existing key.
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $ProtectedGitHubSSHKey = $true,
 
     # Whether to generate a GitHub GPG key for the current user
     [Parameter(Mandatory = $false)]
@@ -249,7 +244,11 @@ if ($GenerateGitHubSSHKey)
 {
     try
     {
-        New-GitHubSSHKey -GitHubToken $GitHubToken -Comment "$env:COMPUTERNAME -> GitHub $DateStr" -Force:($PSBoundParameters['Force'] -eq $true)
+        New-GitHubSSHKey `
+            -GitHubToken $GitHubToken `
+            -PassphraseProtected $ProtectedGitHubSSHKey `
+            -Comment "$env:COMPUTERNAME -> GitHub $DateStr" `
+            -Force:($PSBoundParameters['Force'] -eq $true)
     }
     catch
     {
@@ -261,7 +260,12 @@ if ($GenerateGitHubGPGKey)
 {
     try
     {
-        $GPGKey = New-GitHubGPGKey -GitHubToken $GitHubToken -Username $GitUsername -Email $GitEmail -Comment $env:COMPUTERNAME -Force:($PSBoundParameters['Force'] -eq $true)
+        $GPGKey = New-GitHubGPGKey `
+            -GitHubToken $GitHubToken `
+            -Username $GitUsername `
+            -Email $GitEmail `
+            -Comment $env:COMPUTERNAME `
+            -Force:($PSBoundParameters['Force'] -eq $true)
     }
     catch
     {
