@@ -351,3 +351,5 @@ catch
 {
     throw $_.Exception.Message
 }
+
+Write-Host "Bootstrapping complete. 🎉`nYou will need to restart your computer before some changes take effect." -ForegroundColor Green

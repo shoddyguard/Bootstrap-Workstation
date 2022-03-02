@@ -33,7 +33,7 @@ function Enable-RunAsOnStartMenu
             {
                 throw "Failed to set registry value.`n$($_.Exception.Message)"
             }
-            Write-Host "Enabled 'Run as another user' for the current user's Start menu. A restart is required for the change to take effect." -ForegroundColor Green
+            Write-Host "Enabled 'Run as another user' for the current user's Start menu." -ForegroundColor Green
         }
     }
     
