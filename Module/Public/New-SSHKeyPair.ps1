@@ -111,20 +111,6 @@ function New-SSHKeyPair
                     $SSHKeyPath = $SSHKey.Path
                 }
                 $FullPath = Join-Path $SSHKeyPath $SSHKey.KeyName
-                $SSHArgs = @('-t', $SSHKey.KeyType, '-b', $SSHKey.KeyBits, '-f', $FullPath)
-                if ($SSHKey.SetPassPhrase)
-                {
-                    $Passphrase = Read-Host "Enter passphrase you want to use to secure the key '$($SSHKey.KeyName)'" -AsSecureString
-                    $SSHArgs += @('-N', "$($Passphrase | ConvertFrom-SecureString -AsPlainText)")
-                }
-                else
-                {
-                    $SSHArgs += @('-N', '""')
-                }
-                if ($SSHKey.Comment)
-                {
-                    $SSHArgs += @('-C', $SSHKey.Comment)
-                }
                 if ((Test-Path $FullPath))
                 {
                     if ($Force)
@@ -145,6 +131,20 @@ function New-SSHKeyPair
                         Write-Verbose "Key file at '$FullPath' already exists, use -Force to overwrite"
                         Return
                     }
+                }
+                $SSHArgs = @('-t', $SSHKey.KeyType, '-b', $SSHKey.KeyBits, '-f', $FullPath)
+                if ($SSHKey.SetPassPhrase)
+                {
+                    $Passphrase = Read-Host "Enter passphrase you want to use to secure the key '$($SSHKey.KeyName)'" -AsSecureString
+                    $SSHArgs += @('-N', "$($Passphrase | ConvertFrom-SecureString -AsPlainText)")
+                }
+                else
+                {
+                    $SSHArgs += @('-N', '""')
+                }
+                if ($SSHKey.Comment)
+                {
+                    $SSHArgs += @('-C', $SSHKey.Comment)
                 }
                 $SSHArgs += @('-q')
                 Write-Host "Creating key pair at $FullPath"
