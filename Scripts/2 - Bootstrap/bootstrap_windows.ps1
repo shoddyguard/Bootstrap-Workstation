@@ -96,10 +96,6 @@ param
 $ErrorActionPreference = 'Stop'
 $RequiredPackages = @()
 $DateStr = Get-Date -Format 'yyMMddhhmm'
-# if ($VCSRepoListPath -and $ProtectedGitHubSSHKey)
-# {
-#     throw "Currently only unprotected GitHub SSH keys are supported when cloning VCS repositories"
-# }
 Write-Host 'Beginning bootstrap process...'
 # First import our module
 Write-Host 'Importing the module...'
