@@ -110,6 +110,10 @@ function New-SSHKeyPair
                 {
                     $SSHKeyPath = $SSHKey.Path
                 }
+                if (!(Test-Path $SSHKeyPath))
+                {
+                    New-Item -Path $SSHKeyPath -ItemType Directory -Force | Out-Null
+                }
                 $FullPath = Join-Path $SSHKeyPath $SSHKey.KeyName
                 if ((Test-Path $FullPath))
                 {
