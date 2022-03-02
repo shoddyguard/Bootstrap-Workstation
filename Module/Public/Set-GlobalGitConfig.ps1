@@ -37,7 +37,13 @@ function Set-GlobalGitConfig
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [bool]
-        $GitSignCommits
+        $GitSignCommits,
+
+        # If set will change the default ssh application
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $GitSSHApplicationPath
     )
     
     begin
@@ -69,6 +75,10 @@ function Set-GlobalGitConfig
             if ($GitSignCommits)
             {
                 Invoke-NativeCommand -FilePath 'git' -ArgumentList @('config', '--global', 'commit.gpgsign', 'true')
+            }
+            if ($GitSSHApplicationPath)
+            {
+                Invoke-NativeCommand -FilePath 'git' -ArgumentList @('config', '--global', 'core.sshcommand', $GitSSHApplicationPath)
             }
         }
         catch

@@ -84,6 +84,13 @@ function New-GitHubSSHKey
                 # GitHub doesn't like it when you don't use the default key for SSH, so we'll add it to the user's config.
                 Write-Host 'Setting the new key as the explicit key for github.com...'
                 Add-SSHHostEntry -HostName 'github.com' -IdentityFile $KeyInfo.PrivateKeyPath
+                # If the key is passphrase protected, we'll need to add it to ssh-agent so we can clone with it later on.
+                if ($PassphraseProtected)
+                {
+                    Write-Host 'Adding key to ssh-agent, you will be prompted for your passphrase...'
+                    Start-SSHAgent
+                    Invoke-NativeCommand -FilePath 'ssh-add' -ArgumentList $KeyInfo.PrivateKeyPath
+                }
             }
         }
         catch

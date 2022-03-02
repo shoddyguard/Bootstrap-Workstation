@@ -10,7 +10,19 @@ function Install-OpenSSH
 {
     [CmdletBinding()]
     param
-    ()
+    (
+        # If set will enable incoming connections.
+        [Parameter(Mandatory = $false)]
+        [bool]$EnableIncomingConnections = $false,
+
+        # If set will change git's ssh command to use the OpenSSH version.
+        [Parameter(Mandatory = $false)]
+        [bool]$UseWithGit = $false,
+
+        # If set will force the installation of OpenSSH.
+        [Parameter(Mandatory = $false)]
+        [switch]$Force
+    )
     if (!$IsWindows)
     {
         # We don't need to do anything here.
@@ -18,12 +30,8 @@ function Install-OpenSSH
     }
     else
     {
-        if ((Get-Command 'ssh' -ErrorAction 'SilentlyContinue'))
-        {
-            Write-Host 'OpenSSH is already installed.'
-            return $null
-        }
-        else
+        $SSHCommand = Get-Command 'ssh'
+        if ((!$SSHCommand) -or ($SSHCommand.Source -ne 'C:\Windows\System32\OpenSSH\ssh.exe') -or ($Force))
         {
             Write-Host 'Installing OpenSSH for Windows...'
             try
@@ -43,17 +51,46 @@ function Install-OpenSSH
                 Get-ChildItem -Path 'C:\Program Files\OpenSSH\' | Unblock-File
                 # Run the installer
                 & 'C:\Program Files\OpenSSH\install-sshd.ps1'
-    
-                ## changes the sshd service's startup type from manual to automatic.
-                Set-Service sshd -StartupType Automatic
-                ## starts the sshd service.
-                Start-Service sshd
+
+                # Reload the path (just in case)
+                $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User') 
             }
             catch
             {
                 throw "Failed to install OpenSSH.`n$($_.Exception.Message)"
             }
-            Write-Host 'OpenSSH for Windows has been installed.' -ForegroundColor Green
         }
+        if ($EnableIncomingConnections)
+        {
+            try
+            {
+                $SSHDCheck = Get-Service 'sshd'
+                if ($SSHDCheck.StartType -ne 'Automatic')
+                {
+                    Set-Service sshd -StartupType Automatic
+                }
+                if ($SSHDCheck.Status -ne 'Running')
+                {
+                    Start-Service sshd
+                }
+            }
+            catch
+            {
+                throw "Failed to enable sshd service.`n$($_.Exception.Message)"
+            }
+        }
+        if ($UseWithGit)
+        {
+            try
+            {
+                $SSHCommand = Get-Command 'ssh'
+                Set-GlobalGitConfig -GitSSHApplicationPath ($SSHCommand.Source -replace '\\', '/')
+            }
+            catch
+            {
+                throw "Failed to set git's ssh command.`n$($_.Exception.Message)"
+            }
+        }
+        Write-Host 'OpenSSH for Windows has been installed.' -ForegroundColor Green
     }
 }
