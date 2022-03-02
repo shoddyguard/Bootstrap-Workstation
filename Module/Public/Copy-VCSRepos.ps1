@@ -17,12 +17,17 @@ function Copy-VCSRepos
         # The destination directory.
         [Parameter(Mandatory = $false)]
         [string]
-        $Path = (Join-Path $HOME 'Repositories')
+        $Path = (Join-Path $HOME 'Repositories'),
+
+        # If set denotes that the SSH key requires a passphrase.
+        [Parameter(Mandatory = $false)]
+        [bool]
+        $PassphraseRequired = $false
     )
     
     begin
     {
-        Write-Host "Cloning VCS repositories..."
+        Write-Host 'Cloning VCS repositories...'
     }
     
     process
@@ -61,6 +66,6 @@ function Copy-VCSRepos
     
     end
     {
-        Write-Host "Finished cloning VCS repositories." -ForegroundColor Green
+        Write-Host 'Finished cloning VCS repositories.' -ForegroundColor Green
     }
 }

@@ -66,7 +66,7 @@ param
     # Changing this value will NOT change the passphrase on an existing key.
     [Parameter(Mandatory = $false)]
     [bool]
-    $ProtectedGitHubSSHKey = $false,
+    $ProtectedGitHubSSHKey = $true,
 
     # Whether to generate a GitHub GPG key for the current user
     [Parameter(Mandatory = $false)]
@@ -96,10 +96,10 @@ param
 $ErrorActionPreference = 'Stop'
 $RequiredPackages = @()
 $DateStr = Get-Date -Format 'yyMMddhhmm'
-if ($VCSRepoListPath -and $ProtectedGitHubSSHKey)
-{
-    throw "Currently only unprotected GitHub SSH keys are supported when cloning VCS repositories"
-}
+# if ($VCSRepoListPath -and $ProtectedGitHubSSHKey)
+# {
+#     throw "Currently only unprotected GitHub SSH keys are supported when cloning VCS repositories"
+# }
 Write-Host 'Beginning bootstrap process...'
 # First import our module
 Write-Host 'Importing the module...'
@@ -235,9 +235,18 @@ if ($OhMyPoShProfilePath)
 
 if ($GenerateGitHubSSHKey -or $SSHKeyListPath)
 {
+    $InstallSSHParams = @{}
+    if ($Force)
+    {
+        $InstallSSHParams.Force = $true
+    }
+    if ($GenerateGitHubSSHKey)
+    {
+        $InstallSSHParams.UseWithGit = $true
+    }
     try
     {
-        Install-OpenSSH
+        Install-OpenSSH @InstallSSHParams
     }
     catch
     {

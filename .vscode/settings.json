@@ -9,6 +9,7 @@
         "keyscan",
         "securestring",
         "signingkey",
+        "sshcommand",
         "winget"
     ]
 }
