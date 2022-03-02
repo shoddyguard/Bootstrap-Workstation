@@ -4,6 +4,7 @@
 .DESCRIPTION
     Installs our dependencies, and sets up the environment for the project.
 #>
+$ErrorActionPreference = 'Stop'
 try
 {
     $ChocoCheck = Get-Command 'choco'
@@ -22,7 +23,7 @@ if (!$ChocoCheck)
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
         Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         # Reload the path
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+        $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User') 
     }
     catch
     {
@@ -38,6 +39,6 @@ if (!$PWSHCheck)
         throw "Failed to install PowerShell Core.`nAn unexpected exit code was returned:$($LASTEXITCODE)"
     }
     # Reload the path
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+    $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User') 
 }
-Write-Host "Machine is now ready to be bootstrapped." -ForegroundColor Green
+Write-Host "`nMachine is now ready to be bootstrapped. 👢" -ForegroundColor Green
